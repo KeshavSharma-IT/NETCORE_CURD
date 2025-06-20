@@ -77,5 +77,81 @@ namespace CURDDEMO.Controllers
             ViewBag.Errors =  ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
             return View(personAddRequest);
         }
+
+        [Route("[action]/{personId}")]
+        [HttpGet]
+        public IActionResult Edit(Guid personId) { 
+            
+           PersonResponse personResponse=_personsService.GetPersonByPersonID(personId);
+            if(personResponse == null)
+            {
+                return RedirectToAction("Index");
+            }
+            PersonUpdateRequest personUpdateRequest = personResponse.ToPersonUpdateRequest();
+            List<CountryResponse> countries = _countriesService.GetAllCountries();  
+            ViewBag.Countries = countries.Select(temp =>
+            new SelectListItem()
+            {
+                Text = temp.CountryName,
+                Value = temp.CountryID.ToString()
+            });
+            return View(personUpdateRequest);
+            
+        }
+
+        [HttpPost]
+        [Route("[action]/{personId}")]
+        public IActionResult Edit(Guid personId, PersonUpdateRequest personUpdateRequest) { 
+            
+            if(ModelState.IsValid)
+            {
+                PersonResponse personResponse = _personsService.UpdatePerson(personUpdateRequest);
+                if (personResponse != null)
+                {
+                    return RedirectToAction("Index");
+                }                 
+            }
+            List<CountryResponse> countries = _countriesService.GetAllCountries();
+            ViewBag.Countries = countries.Select(temp =>
+            new SelectListItem()
+            {
+                Text = temp.CountryName,
+                Value = temp.CountryID.ToString()
+            });
+            return View(personUpdateRequest); // Return the view with the model to show validation errors
+        }
+
+
+        [Route("[action]/{personId}")]
+        [HttpGet]
+        public IActionResult Delete(Guid personId)
+        {
+
+            PersonResponse personResponse = _personsService.GetPersonByPersonID(personId);
+            if (personResponse == null)
+            {
+                return RedirectToAction("Index");
+            }
+            PersonUpdateRequest personUpdateRequest = personResponse.ToPersonUpdateRequest();           
+            return View(personUpdateRequest);
+
+        }
+
+        [HttpPost]
+        [Route("[action]/{personId}")]
+        public IActionResult Delete(Guid personId, PersonUpdateRequest personUpdateRequest)
+        {
+
+            if (personId != null)
+            {
+                bool delete= _personsService.DeletePerson(personId);
+                if (delete)
+                {
+                    return RedirectToAction("Index");
+                }
+            }
+            
+            return View(personUpdateRequest); // Return the view with the model to show validation errors
+        }
     }
 }
