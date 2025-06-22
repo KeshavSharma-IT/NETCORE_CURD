@@ -21,6 +21,8 @@ namespace ServiceContracts.DTO
         public bool ReceiveNewsLetters { get; set; }
         public double? Age { get; set; }
 
+        public string? Tin { get; set; }
+
         /// <summary>
         /// Compares the current object data with the parameter object
         /// </summary>
@@ -33,7 +35,7 @@ namespace ServiceContracts.DTO
             if (obj.GetType() != typeof(PersonResponse)) return false;
 
             PersonResponse person = (PersonResponse)obj;
-            return PersonID == person.PersonID && PersonName == person.PersonName && Email == person.Email && DateOfBirth == person.DateOfBirth && Gender == person.Gender && CountryID == person.CountryID && Address == person.Address && ReceiveNewsLetters == person.ReceiveNewsLetters;
+            return PersonID == person.PersonID && PersonName == person.PersonName && Email == person.Email && DateOfBirth == person.DateOfBirth && Gender == person.Gender && CountryID == person.CountryID && Address == person.Address && ReceiveNewsLetters == person.ReceiveNewsLetters && Tin==person.Tin;
         }
 
         public override int GetHashCode()
@@ -63,7 +65,8 @@ namespace ServiceContracts.DTO
                       DateOfBirth = DateOfBirth,
                       CountryID = CountryID,
                       Address = Address,
-                      ReceiveNewsLetters = ReceiveNewsLetters
+                      ReceiveNewsLetters = ReceiveNewsLetters ,
+                      Tin= Tin,
                   };
         }
     }

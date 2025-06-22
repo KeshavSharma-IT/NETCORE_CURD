@@ -11,85 +11,17 @@ namespace Services
     public class PersonsService : IPersonsService
     {
         //private field
-        private readonly List<Person> _persons;
+        //private readonly List<Person> _persons;
+        private readonly PersonsDbContext _db;
         private readonly ICountriesService _countriesService;
 
+        
         //constructor
-        public PersonsService(bool initialize= true)
+        public PersonsService(PersonsDbContext personsDbContext, ICountriesService countriesService)
         {
-            _persons = new List<Person>();
-            _countriesService = new CountriesService();
-
-            if (initialize)
-            {
-                _persons.AddRange(new List<Person>()
-                {
-                    new Person() { PersonID=Guid.Parse("F27C0F98-1FEA-4D36-A9D9-F3FC39A9F4B3"),
-                        PersonName="Edmon",Email="eexcell0@jigsy.com",Address="PIAZZA FILIPPO MEDA 4",
-                        DateOfBirth=DateTime.Parse("2017-02-08"),Gender="Male",ReceiveNewsLetters=true,
-                        CountryID=Guid.Parse("90EBF025-33E6-4AF2-A441-E02D70E331BF")},
-                    
-                    new Person()
-                    {
-                        PersonID = Guid.Parse("93B0FB5A-F3CB-44D1-B1A2-B8088B570335"),
-                        PersonName = "Kathryne",
-                        Email = "kgann1@elpais.com",
-                        Address = "P.-B.-Rodlbergerstraße",
-                        DateOfBirth = DateTime.Parse("2008-11-29"),
-                        Gender = "Female",
-                        ReceiveNewsLetters = false,
-                        CountryID = Guid.Parse("86CF7B5C-3ABA-4ECD-808A-85BCF43DA0A3")
-                    },
-                    new Person()
-                    {
-                        PersonID = Guid.Parse("63A9DE31-B82A-4E76-AACA-D9D30B9771D2"),
-                        PersonName = "Vin",
-                        Email = "vhankins2@newyorker.com",
-                        Address = "PIAZZA FILIPPO MEDA 4",
-                        DateOfBirth = DateTime.Parse("2001-12-18"),
-                        Gender = "Male",
-                        ReceiveNewsLetters = false,
-                        CountryID = Guid.Parse("9ED80C93-910E-43D8-8D20-894BD28F6524")
-                    },
-
-                    new Person()
-                    {
-                        PersonID = Guid.Parse("ACF1C7EF-677B-48F7-9B64-85A2AE64B63D"),
-                        PersonName = "Mirabel",
-                        Email = "msurphliss3@simplemachines.org",
-                        Address = "PO BOX 32282",
-                        DateOfBirth = DateTime.Parse("1999-08-20"),
-                        Gender = "Feale",
-                        ReceiveNewsLetters = false,
-                        CountryID = Guid.Parse("26F4D3B7-814B-4906-8BC0-7B4A05834EEE")
-                    },
-
-                    new Person()
-                    {
-                        PersonID = Guid.Parse("412EC5CB-4990-41A1-B63B-F6FB2A8F96BD"),
-                        PersonName = "Melvyn",
-                        Email = "mhowson4@skyrock.com",
-                        Address = "Kölnische Straße 8",
-                        DateOfBirth = DateTime.Parse("2014-09-17"),
-                        Gender = "Female",
-                        ReceiveNewsLetters = false,
-                        CountryID = Guid.Parse("90EBF025-33E6-4AF2-A441-E02D70E331BF")
-                    },
-
-                    new Person()
-                    {
-                        PersonID = Guid.Parse("B2D76D1F-E4BE-412B-ADE8-DA7AFBDDE194"),
-                        PersonName = "Dukey",
-                        Email = "dtapsfield5@about.com",
-                        Address = "CORSO PERTICARI 25/27",
-                        DateOfBirth = DateTime.Parse("2017-05-14"),
-                        Gender = "Male",
-                        ReceiveNewsLetters = true,
-                        CountryID = Guid.Parse("41650245-C74D-472C-806D-04DBDAAF1133")
-                    }
-                  
-                });
-            }
+            _db = personsDbContext;
+            _countriesService = countriesService;
+           
         }
 
 
@@ -118,7 +50,11 @@ namespace Services
             person.PersonID = Guid.NewGuid();
 
             //add person object to persons list
-            _persons.Add(person);
+            _db.Persons.Add(person);
+            _db.SaveChanges();
+
+            //call stored procedure to insert person
+            //_db.sp_InsertPerson(person);
 
             //convert the Person object into PersonResponse type
             return ConvertPersonToPersonResponse(person);
@@ -126,7 +62,14 @@ namespace Services
 
         public List<PersonResponse> GetAllPersons()
         {
-            return _persons.Select(temp=>ConvertPersonToPersonResponse(temp)).ToList();
+            return _db.Persons.ToList().
+                Select(temp => ConvertPersonToPersonResponse(temp)).ToList();
+
+
+            // get with stored procedure
+            //return _db.sp_GetAllPersons()
+            //    .Select(temp => ConvertPersonToPersonResponse(temp))
+            //    .ToList();
         }
 
         public PersonResponse? GetPersonByPersonID(Guid? personID)
@@ -134,7 +77,7 @@ namespace Services
             if (personID == null)
                 return null;
 
-            Person? person = _persons.FirstOrDefault(temp => temp.PersonID == personID);
+            Person? person = _db.Persons.FirstOrDefault(temp => temp.PersonID == personID);
             if (person == null)
                 return null;
 
@@ -236,7 +179,7 @@ namespace Services
             //Model validation
             ValidationHelper.ModelValidation(personUpdateRequest);
             //check if person exists
-            Person? person = _persons.FirstOrDefault(temp => temp.PersonID == personUpdateRequest.PersonID);
+            Person? person = _db.Persons.FirstOrDefault(temp => temp.PersonID == personUpdateRequest.PersonID);
             if (person == null)
             {
                 throw new ArgumentException("Person not found with the given PersonID");
@@ -253,6 +196,7 @@ namespace Services
             //PersonResponse personResponse = ConvertPersonToPersonResponse(person);
 
             //return the updated person response
+            _db.SaveChanges();
             return ConvertPersonToPersonResponse(person);
 
         }
@@ -264,13 +208,15 @@ namespace Services
                 throw new ArgumentNullException(nameof(personID));
             }
             //check if person exists
-            Person? person = _persons.FirstOrDefault(temp => temp.PersonID == personID);
+            Person? person = _db.Persons.FirstOrDefault(temp => temp.PersonID == personID);
             if (person == null)
             {
                 return false;
             }
             //remove person from persons list
-            return _persons.Remove(person);
+            _db.Persons.Remove(_db.Persons.First(temp => temp.PersonID == personID) ) ;
+            _db.SaveChanges();
+            return true;
 
         }
     }

@@ -7,44 +7,45 @@ namespace Services
     public class CountriesService : ICountriesService
     {
         //private field
-        private readonly List<Country> _countries;
+        //private readonly List<Country> _countries;
+        private readonly PersonsDbContext _db;
 
         //constructor
-        public CountriesService(bool initialize =true)
+        public CountriesService(PersonsDbContext personsDbContext )
         {
-            _countries = new List<Country>();
-            if (initialize)
-            {
+            _db = personsDbContext;
+            //if (initialize)
+            //{
 
-                _countries.AddRange(new List<Country>() {
-                    new Country()
-                    {
-                        CountryID = Guid.Parse("90EBF025-33E6-4AF2-A441-E02D70E331BF"),
-                        CountryName = "India"
-                    },
-                    new Country()
-                    {
-                        CountryID = Guid.Parse("86CF7B5C-3ABA-4ECD-808A-85BCF43DA0A3"),
-                        CountryName = "United States of America"
-                    },
-                    new Country()
-                    {
-                        CountryID = Guid.Parse("9ED80C93-910E-43D8-8D20-894BD28F6524"),
-                        CountryName = "United Kingdom"
-                    },
-                    new Country()
-                    {
-                        CountryID = Guid.Parse("26F4D3B7-814B-4906-8BC0-7B4A05834EEE"),
-                        CountryName = "Canada"
-                    },
-                    new Country()
-                    {
-                        CountryID = Guid.Parse("41650245-C74D-472C-806D-04DBDAAF1133"),
-                        CountryName = "Australia"
-                    }
-                });
+            //    _db.AddRange(new List<Country>() {
+            //        new Country()
+            //        {
+            //            CountryID = Guid.Parse("90EBF025-33E6-4AF2-A441-E02D70E331BF"),
+            //            CountryName = "India"
+            //        },
+            //        new Country()
+            //        {
+            //            CountryID = Guid.Parse("86CF7B5C-3ABA-4ECD-808A-85BCF43DA0A3"),
+            //            CountryName = "United States of America"
+            //        },
+            //        new Country()
+            //        {
+            //            CountryID = Guid.Parse("9ED80C93-910E-43D8-8D20-894BD28F6524"),
+            //            CountryName = "United Kingdom"
+            //        },
+            //        new Country()
+            //        {
+            //            CountryID = Guid.Parse("26F4D3B7-814B-4906-8BC0-7B4A05834EEE"),
+            //            CountryName = "Canada"
+            //        },
+            //        new Country()
+            //        {
+            //            CountryID = Guid.Parse("41650245-C74D-472C-806D-04DBDAAF1133"),
+            //            CountryName = "Australia"
+            //        }
+            //    });
                 
-            }
+            //}
         }
 
         public CountryResponse AddCountry(CountryAddRequest? countryAddRequest)
@@ -63,7 +64,7 @@ namespace Services
             }
 
             //Validation: CountryName can't be duplicate
-            if (_countries.Where(temp => temp.CountryName == countryAddRequest.CountryName).Count() > 0)
+            if (_db.Countries.Count(temp => temp.CountryName == countryAddRequest.CountryName) > 0)
             {
                 throw new ArgumentException("Given country name already exists");
             }
@@ -75,14 +76,15 @@ namespace Services
             country.CountryID = Guid.NewGuid();
 
             //Add country object into _countries
-            _countries.Add(country);
+            _db.Countries.Add(country);
+            _db.SaveChanges();
 
             return country.ToCountryResponse();
         }
 
         public List<CountryResponse> GetAllCountries()
         {
-            return _countries.Select(country => country.ToCountryResponse()).ToList();
+            return _db.Countries.Select(country => country.ToCountryResponse()).ToList();
         }
 
         public CountryResponse? GetCountryByCountryID(Guid? countryID)
@@ -90,7 +92,7 @@ namespace Services
             if (countryID == null)
                 return null;
 
-            Country? country_response_from_list = _countries.FirstOrDefault(temp => temp.CountryID == countryID);
+            Country? country_response_from_list = _db.Countries.FirstOrDefault(temp => temp.CountryID == countryID);
 
             if (country_response_from_list == null)
                 return null;
