@@ -21,7 +21,7 @@ namespace ServiceContracts.DTO
         public bool ReceiveNewsLetters { get; set; }
         public double? Age { get; set; }
 
-        public string? Tin { get; set; }
+        public string? TaxIdentificationNumber { get; set; }
 
         /// <summary>
         /// Compares the current object data with the parameter object
@@ -35,7 +35,7 @@ namespace ServiceContracts.DTO
             if (obj.GetType() != typeof(PersonResponse)) return false;
 
             PersonResponse person = (PersonResponse)obj;
-            return PersonID == person.PersonID && PersonName == person.PersonName && Email == person.Email && DateOfBirth == person.DateOfBirth && Gender == person.Gender && CountryID == person.CountryID && Address == person.Address && ReceiveNewsLetters == person.ReceiveNewsLetters && Tin==person.Tin;
+            return PersonID == person.PersonID && PersonName == person.PersonName && Email == person.Email && DateOfBirth == person.DateOfBirth && Gender == person.Gender && CountryID == person.CountryID && Address == person.Address && ReceiveNewsLetters == person.ReceiveNewsLetters && TaxIdentificationNumber == person.TaxIdentificationNumber;
         }
 
         public override int GetHashCode()
@@ -66,7 +66,7 @@ namespace ServiceContracts.DTO
                       CountryID = CountryID,
                       Address = Address,
                       ReceiveNewsLetters = ReceiveNewsLetters ,
-                      Tin= Tin,
+                      TaxIdentificationNumber = TaxIdentificationNumber,
                   };
         }
     }
@@ -91,8 +91,22 @@ namespace ServiceContracts.DTO
                 Address = person.Address,
                 CountryID = person.CountryID,
                 Gender = person.Gender,
-                Age = (person.DateOfBirth != null) ? Math.Round((DateTime.Now - person.DateOfBirth.Value).TotalDays / 365.25) : null
+                Age = (person.DateOfBirth != null) ? Math.Round((DateTime.Now - person.DateOfBirth.Value).TotalDays / 365.25) : null    ,
+                Country = person.Country?.CountryName, // using navigation property to get country name
             };
         }
+
+        // because of navigation property we dont this anymore because
+        // we have country data in our entity
+        //private PersonResponse ConvertPersonToPersonResponse(Person person)
+        //{
+        //    PersonResponse personResponse = person.ToPersonResponse();
+        //    //personResponse.Country = _countriesService.GetCountryByCountryID(person.CountryID)?.CountryName;
+        //    // after adding navigation property in Person entity  we dont need to call countries service
+        //    personResponse.Country = person.Country?.CountryName; // using navigation property to get country name
+        //    return personResponse;
+        //}
     }
+
+
 }

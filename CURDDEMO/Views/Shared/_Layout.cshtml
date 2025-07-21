@@ -14,7 +14,11 @@
         <div class="navbar">
             <div class="navbar-brand"><img src="~/logo.png"  width="25px" asp-append-version="true"/> CRUD Demo</div>
             <ul>
-                <li><a href="~/person/index">Persons</a></li>
+                @* <li><a href="~/person/index">Persons</a></li> annother way *@  
+                <li>
+                    <a asp-controller="Persons" asp-action="Index">Persons</a>
+                    <a asp-controller="Countries" asp-action="UploadFromExcel">Upload Countries</a>
+                </li>
             </ul>
         </div>
         <div class="page-content">
