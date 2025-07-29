@@ -9,10 +9,10 @@ using System.Threading.Tasks;
 
 namespace Repositories
 {
-    public class CountriesRepositories : ICountriesRepository
+    public class CountriesRepository : ICountriesRepository
     {
         private readonly ApplicationDbContext _context;
-        public CountriesRepositories(ApplicationDbContext context)
+        public CountriesRepository(ApplicationDbContext context)
         {
             _context = context;
         }

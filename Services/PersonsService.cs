@@ -10,6 +10,7 @@ using CsvHelper;
 using System.Globalization;
 using CsvHelper.Configuration;
 using OfficeOpenXml;
+using RepositoryContracts;
 
 namespace Services
 {
@@ -17,15 +18,17 @@ namespace Services
     {
         //private field
         //private readonly List<Person> _persons;
-        private readonly ApplicationDbContext _db;
-        private readonly ICountriesService _countriesService;
+        //private readonly ApplicationDbContext _db;
+        private readonly IPersonsRepository _personRepo;
+        //private readonly ICountriesService _countriesService;
 
         
         //constructor
-        public PersonsService(ApplicationDbContext personsDbContext, ICountriesService countriesService)
+        public PersonsService(IPersonsRepository personsRepository)
         {
-            _db = personsDbContext;
-            _countriesService = countriesService;
+            //_db = personsDbContext;
+            _personRepo = personsRepository;
+            //_countriesService = countriesService;
            
         }
 
@@ -47,8 +50,7 @@ namespace Services
             person.PersonID = Guid.NewGuid();
 
             //add person object to persons list
-            _db.Persons.Add(person);
-            await _db.SaveChangesAsync();
+            await _personRepo.AddPerson(person);
 
             //call stored procedure to insert person
             //_db.sp_InsertPerson(person);
@@ -64,7 +66,8 @@ namespace Services
 
             //get all persons from persons list inculding country details\
             //-- Inculde is used to eager load the related data
-            var persons = await _db.Persons.Include("Country").ToListAsync();
+            //var persons = await _personRepo.Persons.Include("Country").ToListAsync();
+            var persons = await _personRepo.GetAllPersons();
            return  persons.Select(temp => temp.ToPersonResponse()).ToList();
 
             // get with stored procedure
@@ -79,51 +82,84 @@ namespace Services
                 return null;
 
             //Person? person = _db.Persons.FirstOrDefault(temp => temp.PersonID == personID);
-            Person? person = await _db.Persons.Include("Country").FirstOrDefaultAsync(temp => temp.PersonID == personID);
+            //Person? person = await _personRepo.Persons.Include("Country").FirstOrDefaultAsync(temp => temp.PersonID == personID);
+            Person? person = await _personRepo.GetPersonByPersonID(personID.Value);
             if (person == null)
                 return null;
 
             return person.ToPersonResponse();
         }
 
-        public async Task<List<PersonResponse>> GetFilterPersons(string searchby, string? SearchString)
+        //public async Task<List<PersonResponse>> GetFilterPersons(string searchby, string? SearchString)
+        //{
+        //    //List<PersonResponse> persons = await GetAllPersons();
+        //    //List<PersonResponse> filteredPersons = persons;
+
+        //    //if(string.IsNullOrEmpty(searchby) || string.IsNullOrEmpty(SearchString))
+        //    //{
+        //    //    return filteredPersons;
+        //    //}
+
+        //    List<PersonResponse> persons = searchby switch
+
+        //    {
+        //        nameof(Person.PersonName) =>
+        //           await _personRepo.GetFilterPersons(temp => temp.PersonName.Contains(SearchString, StringComparison.OrdinalIgnoreCase)),
+
+        //        nameof(Person.Email) =>
+        //           await _personRepo.GetFilterPersons(temp => temp.Email.Contains(SearchString, StringComparison.OrdinalIgnoreCase)),
+
+        //        nameof(Person.DateOfBirth) =>
+        //           await _personRepo.GetFilterPersons(temp => temp.DateOfBirth.Value.ToString("dd MMMM YYYY").Contains(SearchString, StringComparison.OrdinalIgnoreCase)),
+        //        nameof(Person.Gender) =>
+        //           await _personRepo.GetFilterPersons(temp => temp.Gender.Contains(SearchString, StringComparison.OrdinalIgnoreCase)),
+
+        //        nameof(Person.CountryID) =>
+        //            await _personRepo.GetFilterPersons(temp => temp.Country.CountryName.Contains(SearchString, StringComparison.OrdinalIgnoreCase)),
+
+        //        nameof(Person.Address) =>
+        //            await _personRepo.GetFilterPersons(temp => temp.Address.Contains(SearchString, StringComparison.OrdinalIgnoreCase)),
+
+
+
+        //        _ => await _personRepo.GetAllPersons()
+
+        //    };
+        //    return persons.Select(temp=>temp.ToPersonResponse()).ToList();
+        //}
+
+        public async Task<List<PersonResponse>> GetFilterPersons(string searchBy, string? searchString)
         {
-            List<PersonResponse> persons = await GetAllPersons();
-            List<PersonResponse> filteredPersons = persons;
-
-            if(string.IsNullOrEmpty(searchby) || string.IsNullOrEmpty(SearchString))
+            List<Person> persons = searchBy switch
             {
-                return filteredPersons;
-            }
+                nameof(PersonResponse.PersonName) =>
+                 await _personRepo.GetFilterPersons(temp =>
+                 temp.PersonName.Contains(searchString)),
 
-            switch (searchby)
-            {
-                case nameof(Person.PersonName):
-                    filteredPersons = persons.Where(temp => temp.PersonName != null && temp.PersonName.Contains(SearchString, StringComparison.OrdinalIgnoreCase)).ToList();
-                    break;
-                case nameof(Person.Email):
-                    filteredPersons = persons.Where(temp => temp.Email != null && temp.Email.Contains(SearchString, StringComparison.OrdinalIgnoreCase)).ToList();
-                    break;
-                case nameof(Person.DateOfBirth):
-                    if (DateTime.TryParse(SearchString, out DateTime dateOfBirth))
-                    {
-                        filteredPersons = persons.Where(temp => temp.DateOfBirth != null && temp.DateOfBirth.Value.Date == dateOfBirth.Date).ToList();
-                    }
-                    break;
-                case nameof(Person.Gender):
-                    filteredPersons=persons.Where(temp=>temp.Gender!=null && temp.Gender.Contains(SearchString, StringComparison.OrdinalIgnoreCase)).ToList();
-                    break;
-                case nameof(Person.CountryID):                    
-                        filteredPersons = persons.Where(temp=>(!string.IsNullOrEmpty(temp.Country) ? temp.Country.Contains(SearchString, StringComparison.OrdinalIgnoreCase) : false)).ToList();
-                    break;
-                case nameof(Person.Address):
-                    filteredPersons = persons.Where(temp => temp.Address != null && temp.Address.Contains(SearchString, StringComparison.OrdinalIgnoreCase)).ToList();
-                    break;
-                default:
-                    filteredPersons = persons ;
-                    break;
-            }
-            return filteredPersons;
+                nameof(PersonResponse.Email) =>
+                 await _personRepo.GetFilterPersons(temp =>
+                 temp.Email.Contains(searchString)),
+
+                nameof(PersonResponse.DateOfBirth) =>
+                 await _personRepo.GetFilterPersons(temp =>
+                 temp.DateOfBirth.Value.ToString("dd MMMM yyyy").Contains(searchString)),
+
+
+                nameof(PersonResponse.Gender) =>
+                 await _personRepo.GetFilterPersons(temp =>
+                 temp.Gender.Contains(searchString)),
+
+                nameof(PersonResponse.CountryID) =>
+                 await _personRepo.GetFilterPersons(temp =>
+                 temp.Country.CountryName.Contains(searchString)),
+
+                nameof(PersonResponse.Address) =>
+                await _personRepo.GetFilterPersons(temp =>
+                temp.Address.Contains(searchString)),
+
+                _ => await _personRepo.GetAllPersons()
+            };
+            return persons.Select(temp => temp.ToPersonResponse()).ToList();
         }
 
         public async Task<List<PersonResponse>> GetSortedPersons(List<PersonResponse> allperson, string sortby, SortOrderOptions sortOrder)
@@ -181,7 +217,7 @@ namespace Services
             //Model validation
             ValidationHelper.ModelValidation(personUpdateRequest);
             //check if person exists
-            Person? person = await _db.Persons.FirstOrDefaultAsync(temp => temp.PersonID == personUpdateRequest.PersonID);
+            Person? person = await _personRepo.GetPersonByPersonID(personUpdateRequest.PersonID);
             if (person == null)
             {
                 throw new ArgumentException("Person not found with the given PersonID");
@@ -198,7 +234,7 @@ namespace Services
             //PersonResponse personResponse = ConvertPersonToPersonResponse(person);
 
             //return the updated person response
-            await _db.SaveChangesAsync();
+            await _personRepo.UpdatePerson(person);
             return person.ToPersonResponse();
 
         }
@@ -210,35 +246,20 @@ namespace Services
                 throw new ArgumentNullException(nameof(personID));
             }
             //check if person exists
-            Person? person = await _db.Persons.FirstOrDefaultAsync(temp => temp.PersonID == personID);
+            Person? person = await _personRepo.GetPersonByPersonID(personID.Value);
             if (person == null)
             {
                 return false;
             }
             //remove person from persons list
-            _db.Persons.Remove(_db.Persons.First(temp => temp.PersonID == personID) ) ;
-           await _db.SaveChangesAsync();
+            await _personRepo.DeletePersonByPersonId(personID.Value);
+           
             return true;
 
         }
 
-        //public async Task<MemoryStream> GetPersonCSV()
-        //{
-        //    MemoryStream memoryStream = new MemoryStream();
-        //    StreamWriter streamWriter = new StreamWriter(memoryStream);
-        //    CsvWriter csvwriter = new CsvWriter(streamWriter, CultureInfo.InvariantCulture,leaveOpen:true);
 
-        //    csvwriter.WriteHeader<PersonResponse>();
-        //    csvwriter.NextRecord();
-        //    List<PersonResponse> persons  =_db.Persons.Include("Country").Select(temp=>temp.ToPersonResponse()).ToList();
-        //    await csvwriter.WriteRecordsAsync(persons);
-        //    memoryStream.Position = 0;
-        //    return memoryStream;
-
-
-        //}
-
-        public Task<MemoryStream> GetPersonCSV()
+        public async Task<MemoryStream> GetPersonCSV()
         {
             MemoryStream memoryStream = new MemoryStream();
             StreamWriter streamWriter = new StreamWriter(memoryStream);
@@ -256,7 +277,7 @@ namespace Services
             csvwriter.WriteField(nameof(PersonResponse.Address));
             csvwriter.WriteField(nameof(PersonResponse.ReceiveNewsLetters));
             csvwriter.NextRecord();
-            List<PersonResponse> persons = _db.Persons.Include("Country").Select(temp => temp.ToPersonResponse()).ToList();
+            List<PersonResponse> persons = await GetAllPersons();
 
             foreach(PersonResponse person in persons)
             {
@@ -278,7 +299,7 @@ namespace Services
 
             }                
             memoryStream.Position = 0;
-            return Task.FromResult(memoryStream);
+            return memoryStream;
 
 
         }
@@ -300,7 +321,8 @@ namespace Services
 
                 int row = 2;
 
-                List<PersonResponse> personResponses=_db.Persons.Include("Country").Select(temp=>temp.ToPersonResponse()).ToList();
+                //List<PersonResponse> personResponses=_personRepo.Persons.Include("Country").Select(temp=>temp.ToPersonResponse()).ToList();
+                List<PersonResponse> personResponses=await GetAllPersons();
 
                  foreach(PersonResponse person in personResponses)
                 {
