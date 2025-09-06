@@ -3,20 +3,16 @@
 @{
     ViewBag.Title = "Persons";
 }
-@* <form action="~/persons/index" method="get"> *@
-<form asp-controller="persons" asp-action="Index" method="get"> @* with tag helper *@
+<form asp-controller="Persons" asp-action="Index" method="get">
     <h1>Persons</h1>
 
-    @* <a href="~/persons/create">Create Person</a> *@
-    <a asp-controller="Persons" asp-action="Create" class="ml">Create Person</a>   @* with tag helper *@
-   @* downlod pdf *@
-    <a asp-controller="Persons" asp-action="PersonPdf" class="ml">Downlod Pdf</a>
+    <a asp-controller="Persons" asp-action="Create">Create Person</a>
 
-    @* downlod csv *@
-    <a asp-controller="Persons" asp-action="PersonCsv" class="ml">Downlod Csv</a>  
+    <a asp-controller="Persons" asp-action="PersonsPDF" class="ml">Download as PDF</a>
 
-    <a asp-controller="Persons" asp-action="PersonExcel" class="ml">Downlod Excel</a>
+    <a asp-controller="Persons" asp-action="PersonsCSV" class="ml">Download as CSV</a>
 
+    <a asp-controller="Persons" asp-action="PersonsExcel" class="ml">Download as Excel</a>
 
     <div class="box flex">
         <div class="flex-1">
@@ -43,57 +39,52 @@
 
         <div class="flex-1">
             <button class="button button-blue-back">Search</button>
-            <a href="~/persons/index" class="link-hover">Clear all</a>
+            <a asp-controller="Persons" asp-action="Index" class="link-hover">Clear all</a>
         </div>
     </div>
 
 
-    <table class="table w-100 mt">
+    <table class="table w-100 mt persons">
         <thead>
             <tr>
                 @await Html.PartialAsync("_GridColumnHeader", new ViewDataDictionary(ViewData) {
                 { "ColumnName", nameof(PersonResponse.PersonName) },
-                { "DisplayName", "Person Name" },
-                })
+                                { "DisplayName", "Person Name" },
+                                })
 
                 @await Html.PartialAsync("_GridColumnHeader", new ViewDataDictionary(ViewData) {
-                { "ColumnName", nameof(PersonResponse.Email) },
-                { "DisplayName", "Email" },
-                })
+                                { "ColumnName", nameof(PersonResponse.Email) },
+                                { "DisplayName", "Email" },
+                                })
 
                 @await Html.PartialAsync("_GridColumnHeader", new ViewDataDictionary(ViewData) {
-                { "ColumnName", nameof(PersonResponse.DateOfBirth) },
-                { "DisplayName", "Date of Birth" },
-                })
+                                { "ColumnName", nameof(PersonResponse.DateOfBirth) },
+                                { "DisplayName", "Date of Birth" },
+                                })
 
                 @await Html.PartialAsync("_GridColumnHeader", new ViewDataDictionary(ViewData) {
-                { "ColumnName", nameof(PersonResponse.Age) },
-                { "DisplayName", "Age" },
-                })
+                                { "ColumnName", nameof(PersonResponse.Age) },
+                                { "DisplayName", "Age" },
+                                })
 
                 @await Html.PartialAsync("_GridColumnHeader", new ViewDataDictionary(ViewData) {
-                { "ColumnName", nameof(PersonResponse.Gender) },
-                { "DisplayName", "Gender" },
-                })
+                                { "ColumnName", nameof(PersonResponse.Gender) },
+                                { "DisplayName", "Gender" },
+                                })
 
                 @await Html.PartialAsync("_GridColumnHeader", new ViewDataDictionary(ViewData) {
-                { "ColumnName", nameof(PersonResponse.Country) },
-                { "DisplayName", "Country" },
-                })
+                                { "ColumnName", nameof(PersonResponse.Country) },
+                                { "DisplayName", "Country" },
+                                })
 
                 @await Html.PartialAsync("_GridColumnHeader", new ViewDataDictionary(ViewData) {
-                { "ColumnName", nameof(PersonResponse.Address) },
-                { "DisplayName", "Address" },
-                })
+                                { "ColumnName", nameof(PersonResponse.Address) },
+                                { "DisplayName", "Address" },
+                                })
 
                 @await Html.PartialAsync("_GridColumnHeader", new ViewDataDictionary(ViewData) {
-                { "ColumnName", nameof(PersonResponse.ReceiveNewsLetters) },
-                { "DisplayName", "Receive News Letters" },
-                })
-
-                @await Html.PartialAsync("_GridColumnHeader", new ViewDataDictionary(ViewData) {
-                                { "ColumnName", nameof(PersonResponse.TaxIdentificationNumber) },
-                                { "DisplayName", "Tin" },
+                                { "ColumnName", nameof(PersonResponse.ReceiveNewsLetters) },
+                                { "DisplayName", "Receive News Letters" },
                                 })
 
                 <th>Options</th>
@@ -112,14 +103,12 @@
                     <td style="width:10%">@person.Country</td>
                     <td style="width:15%">@person.Address</td>
                     <td style="width:20%">@person.ReceiveNewsLetters</td>
-                    <td style="width:20%">@person.TaxIdentificationNumber</td>
                     <td style="width:20%">
-                        <a asp-controller="Persons" asp-action="Edit" asp-route-personID="@person.PersonID">
-                            Edit
-                        </a>
-                        <a asp-controller="Persons" asp-action="Delete" asp-route-personID="@person.PersonID">
-                            Delete
-                        </a>
+                        <a asp-controller="Persons" asp-action="Edit" asp-route-personID="@person.PersonID">Edit</a>
+                        @* /Persons/Edit/1 *@
+
+                        <a asp-controller="Persons" asp-action="Delete" asp-route-personID="@person.PersonID">Delete</a>
+                        @* /Persons/Delete/1 *@
                     </td>
                 </tr>
             }

@@ -27,5 +27,10 @@ namespace Entities
         [ForeignKey("CountryID")]
         public virtual Country Country { get; set; }  // Navigation property to Country entity
         /// Navigation property is used to establish a relationship between Person and Country entities
+        /// 
+        public override string ToString()
+        {
+            return $"Person Id:{PersonID}, Person Name :{PersonName}, Email: {Email},Date of Birth :{DateOfBirth?.ToString("MM/dd/yyyy")},Gender:{Gender}, Country Id:{CountryID},Country : {Country.CountryName}, Address: {Address}, ReceiveNewsLetters :{ReceiveNewsLetters} ";
+        }
     }
 }
