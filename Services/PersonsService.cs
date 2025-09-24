@@ -216,7 +216,7 @@ namespace Services
             if (person == null)
                 return false;
 
-            await _personsRepository.GetPersonByPersonID(personID.Value);
+            await _personsRepository.DeletePerson(personID.Value);
 
             return true;
         }

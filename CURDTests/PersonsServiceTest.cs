@@ -537,7 +537,7 @@ namespace CRUDTests
 
             PersonResponse person_response_from_add = person_add_request.ToPersonResponse();
 
-            _mockpersonsRepository.Setup(temp=>temp.DeletePersonByPersonId(It.IsAny<Guid>())).ReturnsAsync(true);
+            _mockpersonsRepository.Setup(temp=>temp.DeletePerson(It.IsAny<Guid>())).ReturnsAsync(true);
             _mockpersonsRepository.Setup(temp=>temp.GetPersonByPersonID(It.IsAny<Guid>())).ReturnsAsync(person_add_request);
 
             //Act

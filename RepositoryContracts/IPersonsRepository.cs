@@ -17,7 +17,7 @@ namespace RepositoryContracts
         Task<Person?> GetPersonByPersonID(Guid Id);
         Task<List<Person>> GetFilteredPersons(Expression<Func<Person,bool>>predicate);
 
-        Task<bool> DeletePersonByPersonId(Guid Id); 
+        Task<bool> DeletePerson(Guid Id); 
         Task<Person> UpdatePerson(Person person);
 
        

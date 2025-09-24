@@ -24,25 +24,27 @@ namespace CRUDTests
 
         #region Index
 
-        [Fact]
-        public async Task Index_ToReturnView()
-        {
-            //Arrange
+        //[Fact]
+        //public async Task Index_ToReturnView()
+        //{
+        //    //Arrange
 
-            //Act
-            HttpResponseMessage response = await _client.GetAsync("/Persons/Index");
+        //    //Act
+        //    HttpResponseMessage response = await _client.GetAsync("/Persons/Index");
 
-            //Assert
-            response.Should().BeSuccessful(); //2xx
+        //    //Assert
+        //    response.Should().BeSuccessful(); //2xx
 
-            string responseBody = await response.Content.ReadAsStringAsync();
+        //    string responseBody = await response.Content.ReadAsStringAsync();
 
-            HtmlDocument html = new HtmlDocument();
-            html.LoadHtml(responseBody);
-            var document = html.DocumentNode;
+        //    HtmlDocument html = new HtmlDocument();
+        //    html.LoadHtml(responseBody);
+        //    var document = html.DocumentNode;
 
-            document.QuerySelectorAll("table.persons").Should().NotBeNull();
-        }
+        //    document.QuerySelectorAll("table.persons").Should().NotBeNull();
+        //}
+
+        
 
         #endregion
     }

@@ -4,11 +4,26 @@
     ViewBag.Title = "Edit Person";
 }
 
-@* <a href="~/persons/index" class="link-hover">Back to Persons List</a> *@
-<a asp-controller="Persons" asp-action="Index" class="link-hover">Back to Persons List</a>  @* with tag helper *@
-<h2>Edit Person</h2>
 
-<div class="w-50">
+<div class="flex">
+    <div class="flex-1">
+        <div class="text-grey">
+            <span>Contacts</span>
+            <i class="fa-solid fa-caret-right"></i>
+            <span class="text-grey">Persons</span>
+            <i class="fa-solid fa-caret-right"></i>
+            <span class="text-grey">Edit</span>
+        </div>
+    </div>
+</div>
+
+@* <a href="~/persons/index" class="link-hover">Back to Persons List</a> *@
+
+<div class="form-container">
+
+    <a asp-controller="Persons" asp-action="Index" class="link-hover">Back to Persons List</a>  @* with tag helper *@
+    <h2 class="text-large">Edit Person</h2>
+
     @* <form action="~/persons/create" method="post"> *@
     <form asp-controller="persons" asp-action="Edit" method="post">  @* with tag helper *@
 

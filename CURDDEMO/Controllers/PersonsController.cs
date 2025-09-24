@@ -1,4 +1,9 @@
-﻿using CURDDEMO.Filters.ActionFilters;
+﻿using CRUDExample.Filters.ActionFilters;
+using CURDDEMO.Filters;
+using CURDDEMO.Filters.ActionFilters;
+using CURDDEMO.Filters.AuthorizationFilters;
+using CURDDEMO.Filters.ExceptionFilters;
+using CURDDEMO.Filters.ResourseFilter;
 using CURDDEMO.Filters.ResultFilter;
 using Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -12,8 +17,11 @@ namespace CURDDEMO.Controllers
 {
     //[Route("persons")]
     [Route("[controller]")]
-    [TypeFilter(typeof(ResponseHeaderActionFilter), Arguments = new object[] { "My-Key-From-Controller", "My-Value-From-Controller", 3 }, Order = 3)]
-
+    //[TypeFilter(typeof(ResponseHeaderActionFilter), Arguments = new object[] { "My-Key-From-Controller", "My-Value-From-Controller", 3 }, Order = 3)]
+    //[ResponseHeaderActionFilter("My-Key-From-Controller", "My-Value-From-Controller", 3)]
+    [ResponseHeaderFilterFactoryAttribute("My-Key-From-Controller", "My-Value-From-Controller", 3)]
+    [TypeFilter(typeof(HandleExceptionFilter))]
+    [TypeFilter(typeof(PersonAlwaysRunFilter))]
     public class PersonsController : Controller
     {
         //private filed for dpendency injection
@@ -66,12 +74,23 @@ namespace CURDDEMO.Controllers
 
         [Route("[action]")]
         [Route("/")]
-        [TypeFilter(typeof(PersonsListActionFilter), Order = 4)]
-        [TypeFilter(typeof(ResponseHeaderActionFilter), Arguments = new object[] { "MyKey-FromAction", "MyValue-From-Action", 1 }, Order = 1)]
-
+        //[TypeFilter(typeof(PersonsListActionFilter), Order = 4)]
+        [ServiceFilter(typeof(PersonsListActionFilter), Order = 4)]
+        [TypeFilter(typeof(ResponseHeaderFilterFactoryAttribute), Arguments = new object[] { "MyKey-FromAction", "MyValue-From-Action", 1 }, Order = 1)]
         [TypeFilter(typeof(PersonsListResultFilter))]
+        [TypeFilter(typeof(SkipFilter))]
         public async Task<IActionResult> Index(string searchBy, string? searchString, string sortBy = nameof(PersonResponse.PersonName), SortOrderOptions sortOrder = SortOrderOptions.ASC)
         {
+            //searching
+                ViewBag.SearchFields = new Dictionary<string, string>()
+              {
+                { nameof(PersonResponse.PersonName), "Person Name" },
+                { nameof(PersonResponse.Email), "Email" },
+                { nameof(PersonResponse.DateOfBirth), "Date of Birth" },
+                { nameof(PersonResponse.Gender), "Gender" },
+                { nameof(PersonResponse.CountryID), "Country" },
+                { nameof(PersonResponse.Address), "Address" }
+              };
             _logger.LogInformation("Index action method of PersonsController");
 
             _logger.LogDebug($"searchBy: {searchBy}, searchString: {searchString}, sortBy: {sortBy}, sortOrder: {sortOrder}");
@@ -106,6 +125,8 @@ namespace CURDDEMO.Controllers
         [HttpPost]
         [Route("create")]
         [TypeFilter(typeof(PersonCreateandEditPostFilter))]
+
+        [TypeFilter(typeof(FeatureDisabledResourceFilter),Arguments = new object[] {false})]
         public async Task<IActionResult> Create(PersonAddRequest? personRequest)
         {
             //if (ModelState.IsValid)
@@ -123,6 +144,8 @@ namespace CURDDEMO.Controllers
 
         [Route("[action]/{personId}")]
         [HttpGet]
+        [TypeFilter(typeof(TokenResultFilter))]
+        
         public async Task<IActionResult> Edit(Guid personId) { 
             
            PersonResponse personResponse=await _personsService.GetPersonByPersonID(personId);
@@ -144,6 +167,7 @@ namespace CURDDEMO.Controllers
 
         [HttpPost]
         [Route("[action]/{personId}")]
+        [TypeFilter(typeof(TokenAuthFilter))]
         public async Task<IActionResult> Edit(Guid personId, PersonUpdateRequest personUpdateRequest) { 
             
             if(ModelState.IsValid)
@@ -180,21 +204,17 @@ namespace CURDDEMO.Controllers
 
         }
 
+        
         [HttpPost]
-        [Route("[action]/{personId}")]
-        public async Task<IActionResult> Delete(Guid personId, PersonUpdateRequest personUpdateRequest)
+        [Route("[action]/{personID}")]
+        public async Task<IActionResult> Delete(PersonUpdateRequest personUpdateResult)
         {
+            PersonResponse? personResponse = await _personsService.GetPersonByPersonID(personUpdateResult.PersonID);
+            if (personResponse == null)
+                return RedirectToAction("Index");
 
-            if (personId != null)
-            {
-                bool delete=await _personsService.DeletePerson(personId);
-                if (delete)
-                {
-                    return RedirectToAction("Index");
-                }
-            }
-            
-            return View(personUpdateRequest); // Return the view with the model to show validation errors
+            await _personsService.DeletePerson(personUpdateResult.PersonID);
+            return RedirectToAction("Index");
         }
 
         [Route("PersonPdf")]

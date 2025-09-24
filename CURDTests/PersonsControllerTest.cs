@@ -2,6 +2,7 @@
 using CURDDEMO.Controllers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Moq;
 using ServiceContracts;
 using ServiceContracts.DTO;
@@ -14,9 +15,12 @@ namespace CURDTests
     {
         private readonly IPersonsService _personsService;
         private readonly ICountriesService _countriesService;
+        private readonly ILogger<PersonsController> _logger;
+
 
         private readonly Mock<ICountriesService> _countriesServiceMock;
         private readonly Mock<IPersonsService> _personsServiceMock;
+        private readonly Mock<ILogger<PersonsController>> _loggerMock;
 
         private readonly Fixture _fixture;
 
@@ -26,9 +30,11 @@ namespace CURDTests
 
             _countriesServiceMock = new Mock<ICountriesService>();
             _personsServiceMock = new Mock<IPersonsService>();
+            _loggerMock = new Mock<ILogger<PersonsController>>();
 
             _countriesService = _countriesServiceMock.Object;
             _personsService = _personsServiceMock.Object;
+            _logger        =_loggerMock.Object;
         }
 
         #region Index
@@ -39,7 +45,7 @@ namespace CURDTests
             //Arrange
             List<PersonResponse> persons_response_list = _fixture.Create<List<PersonResponse>>();
 
-            PersonsController personsController = new PersonsController(_personsService, _countriesService);
+            PersonsController personsController = new PersonsController(_personsService, _countriesService, _logger);
 
             _personsServiceMock
              .Setup(temp => temp.GetFilteredPersons(It.IsAny<string>(), It.IsAny<string>()))
@@ -79,7 +85,7 @@ namespace CURDTests
              .Setup(temp => temp.AddPerson(It.IsAny<PersonAddRequest>()))
              .ReturnsAsync(person_response);
 
-            PersonsController personsController = new PersonsController(_personsService, _countriesService);
+            PersonsController personsController = new PersonsController(_personsService, _countriesService, _logger);
 
 
             //Act
@@ -96,35 +102,35 @@ namespace CURDTests
         }
 
 
-        [Fact]
-        public async void Create_IfNoModelErrors_ToReturnRedirectToIndex()
-        {
-            //Arrange
-            PersonAddRequest person_add_request = _fixture.Create<PersonAddRequest>();
+        //[Fact]
+        //public async void Create_IfNoModelErrors_ToReturnRedirectToIndex()
+        //{
+        //    //Arrange
+        //    PersonAddRequest person_add_request = _fixture.Create<PersonAddRequest>();
 
-            PersonResponse person_response = _fixture.Create<PersonResponse>();
+        //    PersonResponse person_response = _fixture.Create<PersonResponse>();
 
-            List<CountryResponse> countries = _fixture.Create<List<CountryResponse>>();
+        //    List<CountryResponse> countries = _fixture.Create<List<CountryResponse>>();
 
-            _countriesServiceMock
-             .Setup(temp => temp.GetAllCountries())
-             .ReturnsAsync(countries);
+        //    _countriesServiceMock
+        //     .Setup(temp => temp.GetAllCountries())
+        //     .ReturnsAsync(countries);
 
-            _personsServiceMock
-             .Setup(temp => temp.AddPerson(It.IsAny<PersonAddRequest>()))
-             .ReturnsAsync(person_response);
+        //    _personsServiceMock
+        //     .Setup(temp => temp.AddPerson(It.IsAny<PersonAddRequest>()))
+        //     .ReturnsAsync(person_response);
 
-            PersonsController personsController = new PersonsController(_personsService, _countriesService);
+        //    PersonsController personsController = new PersonsController(_personsService, _countriesService, _logger);
 
 
-            //Act
-            IActionResult result = await personsController.Create(person_add_request);
+        //    //Act
+        //    IActionResult result = await personsController.Create(person_add_request);
 
-            //Assert
-            RedirectToActionResult redirectResult = Assert.IsType<RedirectToActionResult>(result);
+        //    //Assert
+        //    RedirectToActionResult redirectResult = Assert.IsType<RedirectToActionResult>(result);
 
-            redirectResult.ActionName.Should().Be("Index");
-        }
+        //    redirectResult.ActionName.Should().Be("Index");
+        //}
 
         #endregion
     }

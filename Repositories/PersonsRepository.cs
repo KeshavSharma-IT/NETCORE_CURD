@@ -28,7 +28,7 @@ namespace Repositories
             return person;
         }
 
-        public async Task<bool> DeletePersonByPersonId(Guid Id)
+        public async Task<bool> DeletePerson(Guid Id)
         {
             _context.Persons.RemoveRange(_context.Persons.Where(temp => temp.PersonID == Id));
           int rowDeleted=  await _context.SaveChangesAsync();
