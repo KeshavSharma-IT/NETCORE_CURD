@@ -25,15 +25,31 @@ namespace CURDDEMO.Controllers
     public class PersonsController : Controller
     {
         //private filed for dpendency injection
-        private readonly IPersonsService _personsService;
-        private readonly ICountriesService _countriesService;
+        //private readonly IPersonsService _personsService;
+        private readonly IPersonsGetterService _personsGetterService;
+        private readonly IPersonsAdderService _personsAdderService;
+        private readonly IPersonsSorterService _personsSorterService;
+        private readonly IPersonsDeleterService _personsDeleterService;
+        private readonly IPersonsUpdaterService _personsUpdaterService;
+        private readonly ICountriesGetterService _countriesGetterService;
         private readonly ILogger<PersonsController> _logger;
 
         //constructor
-        public PersonsController(IPersonsService personsService,ICountriesService countriesService, ILogger<PersonsController> logger)
+        //public PersonsController(IPersonsService personsService,ICountriesService countriesService, ILogger<PersonsController> logger)
+        //{
+        //    _personsService = personsService;
+        //    _countriesService = countriesService;
+        //    _logger = logger;
+        //}
+        public PersonsController(IPersonsGetterService personsGetterService, IPersonsAdderService personsAdderService, IPersonsDeleterService personsDeleterService, IPersonsUpdaterService personsUpdaterService, IPersonsSorterService personsSorterService, ICountriesGetterService countriesGetterService, ILogger<PersonsController> logger)
         {
-            _personsService = personsService;
-            _countriesService = countriesService;
+            _personsGetterService = personsGetterService;
+            _personsAdderService = personsAdderService;
+            _personsUpdaterService = personsUpdaterService;
+            _personsDeleterService = personsDeleterService;
+            _personsSorterService = personsSorterService;
+
+            _countriesGetterService = countriesGetterService;
             _logger = logger;
         }
 
@@ -97,10 +113,10 @@ namespace CURDDEMO.Controllers
 
 
             //Search
-            List<PersonResponse> persons = await _personsService.GetFilteredPersons(searchBy, searchString);
+            List<PersonResponse> persons = await _personsGetterService.GetFilteredPersons(searchBy, searchString);
 
             //Sort
-            List<PersonResponse> sortedPersons = await _personsService.GetSortedPersons(persons, sortBy, sortOrder);
+            List<PersonResponse> sortedPersons = await _personsSorterService.GetSortedPersons(persons, sortBy, sortOrder);
 
             return View(sortedPersons); //Views/Persons/Index.cshtml
         }
@@ -109,7 +125,7 @@ namespace CURDDEMO.Controllers
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            List<CountryResponse> countries  =await _countriesService.GetAllCountries();
+            List<CountryResponse> countries  =await _countriesGetterService.GetAllCountries();
             //ViewBag.Countries = countries;
             ViewBag.Countries = countries.Select(temp =>
             new SelectListItem()
@@ -137,7 +153,7 @@ namespace CURDDEMO.Controllers
             //List<CountryResponse> countries = await _countriesService.GetAllCountries();
             //ViewBag.Countries = countries;
             //ViewBag.Errors =  ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
-            PersonResponse personResponse = await _personsService.AddPerson(personRequest);
+            PersonResponse personResponse = await _personsAdderService.AddPerson(personRequest);
 
             return View(personRequest);
         }
@@ -148,13 +164,14 @@ namespace CURDDEMO.Controllers
         
         public async Task<IActionResult> Edit(Guid personId) { 
             
-           PersonResponse personResponse=await _personsService.GetPersonByPersonID(personId);
+           PersonResponse personResponse=await _personsGetterService.GetPersonByPersonID(personId);
             if(personResponse == null)
             {
                 return RedirectToAction("Index");
             }
             PersonUpdateRequest personUpdateRequest = personResponse.ToPersonUpdateRequest();
-            List<CountryResponse> countries = await _countriesService.GetAllCountries();  
+
+            List<CountryResponse> countries = await _countriesGetterService.GetAllCountries();  
             ViewBag.Countries = countries.Select(temp =>
             new SelectListItem()
             {
@@ -165,27 +182,21 @@ namespace CURDDEMO.Controllers
             
         }
 
+
         [HttpPost]
         [Route("[action]/{personId}")]
         [TypeFilter(typeof(TokenAuthFilter))]
-        public async Task<IActionResult> Edit(Guid personId, PersonUpdateRequest personUpdateRequest) { 
-            
-            if(ModelState.IsValid)
+        public async Task<IActionResult> Edit(Guid personId, PersonUpdateRequest personUpdateRequest) {
+
+            PersonResponse? personResponse = await _personsGetterService.GetPersonByPersonID(personUpdateRequest.PersonID);
+
+            if (personResponse == null)
             {
-                PersonResponse personResponse = await _personsService.UpdatePerson(personUpdateRequest);
-                if (personResponse != null)
-                {
-                    return RedirectToAction("Index");
-                }                 
+                return RedirectToAction("Index");
             }
-            List<CountryResponse> countries =await _countriesService.GetAllCountries();
-            ViewBag.Countries = countries.Select(temp =>
-            new SelectListItem()
-            {
-                Text = temp.CountryName,
-                Value = temp.CountryID.ToString()
-            });
-            return View(personUpdateRequest); // Return the view with the model to show validation errors
+            
+            PersonResponse updatedPerson = await _personsUpdaterService.UpdatePerson(personUpdateRequest);
+            return RedirectToAction("Index"); // Return the view with the model to show validation errors
         }
 
 
@@ -194,7 +205,7 @@ namespace CURDDEMO.Controllers
         public async Task<IActionResult> Delete(Guid personId)
         {
 
-            PersonResponse personResponse =await _personsService.GetPersonByPersonID(personId);
+            PersonResponse personResponse =await _personsGetterService.GetPersonByPersonID(personId);
             if (personResponse == null)
             {
                 return RedirectToAction("Index");
@@ -209,18 +220,18 @@ namespace CURDDEMO.Controllers
         [Route("[action]/{personID}")]
         public async Task<IActionResult> Delete(PersonUpdateRequest personUpdateResult)
         {
-            PersonResponse? personResponse = await _personsService.GetPersonByPersonID(personUpdateResult.PersonID);
+            PersonResponse? personResponse = await _personsGetterService.GetPersonByPersonID(personUpdateResult.PersonID);
             if (personResponse == null)
                 return RedirectToAction("Index");
 
-            await _personsService.DeletePerson(personUpdateResult.PersonID);
+            await _personsDeleterService.DeletePerson(personUpdateResult.PersonID);
             return RedirectToAction("Index");
         }
 
         [Route("PersonPdf")]
         public async Task<IActionResult> PersonPdf()
         {
-           List<PersonResponse> personResponses=await _personsService.GetAllPersons();
+           List<PersonResponse> personResponses=await _personsGetterService.GetAllPersons();
             return new ViewAsPdf("PersonPdf", personResponses, ViewData)
             {
                 PageMargins = new Rotativa.AspNetCore.Options.Margins() { Top = 20, Right = 20, Bottom = 20, Left = 20 },
@@ -233,7 +244,7 @@ namespace CURDDEMO.Controllers
         [Route("PersonCsv")]
         public async Task<IActionResult> PersonCsv()
         {
-          MemoryStream memoryStream =await _personsService.GetPersonsCSV();
+          MemoryStream memoryStream =await _personsGetterService.GetPersonsCSV();
             return File(memoryStream, "application/octet-stream", "persons.csv"); 
              
 
@@ -242,7 +253,7 @@ namespace CURDDEMO.Controllers
         [Route("PersonExcel")]
         public async Task<IActionResult> PersonExcel()
         {
-            MemoryStream memoryStream = await _personsService.GetPersonsExcel();
+            MemoryStream memoryStream = await _personsGetterService.GetPersonsExcel();
             return File(memoryStream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "persons.xlxs");
 
 

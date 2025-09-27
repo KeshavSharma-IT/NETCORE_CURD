@@ -8,11 +8,11 @@ namespace CURDDEMO.Filters.ActionFilters
 {
     public class PersonCreateandEditPostFilter : IAsyncActionFilter
     {
-        private readonly ICountriesService _countriesService;
+        private readonly ICountriesGetterService _countriesGetterService;
 
-        public PersonCreateandEditPostFilter(ICountriesService countriesService)
+        public PersonCreateandEditPostFilter(ICountriesGetterService countriesGetterService)
         {
-           _countriesService = countriesService;
+            _countriesGetterService = countriesGetterService;
         }
         public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
@@ -21,7 +21,7 @@ namespace CURDDEMO.Filters.ActionFilters
             {
                 if (!personsController.ModelState.IsValid)
                 {
-                    List<CountryResponse> countries = await _countriesService.GetAllCountries();
+                    List<CountryResponse> countries = await _countriesGetterService.GetAllCountries();
                     personsController.ViewBag.Countries = countries.Select(temp =>
                     new SelectListItem() { Text = temp.CountryName, Value = temp.CountryID.ToString() });
 

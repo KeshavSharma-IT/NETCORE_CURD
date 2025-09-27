@@ -44,11 +44,11 @@ namespace CRUDExample.Filters.ActionFilters
         {
             _logger.LogInformation("Before logic - ResponseHeaderActionFilter");
 
+            context.HttpContext.Response.Headers[Key] = Value;
             await next(); //calls the subsequent filter or action method
 
             _logger.LogInformation("Before logic - ResponseHeaderActionFilter");
 
-            context.HttpContext.Response.Headers[Key] = Value;
         }
     }
 }

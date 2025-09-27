@@ -34,8 +34,20 @@ namespace CURDDEMO.StartupExtension
 
 
 
-           services.AddScoped<ICountriesService, CountriesService>();
-           services.AddScoped<IPersonsService, PersonsService>();
+            services.AddScoped<ICountriesGetterService, CountriesGetterService>();
+            services.AddScoped<ICountriesAdderService, CountriesAdderService>();
+            services.AddScoped<ICountriesUploaderService, CountriesUploaderService>();
+
+            //services.AddScoped<IPersonsGetterService, PersonsGetterService>();
+            services.AddScoped<IPersonsGetterService, PersonsGetterServiceWithFewExcelFields>();
+            services.AddScoped<PersonsGetterService, PersonsGetterService>();
+
+
+
+            services.AddScoped<IPersonsUpdaterService, PersonsUpdaterService>();
+           services.AddScoped<IPersonsAdderService, PersonsAdderService>();
+           services.AddScoped<IPersonsDeleterService, PersonsDeleterService>();
+           services.AddScoped<IPersonsSorterService, PersonsSorterService>();
            services.AddDbContext<ApplicationDbContext>(options =>
             {
                 options.UseSqlServer(configuration.GetConnectionString("Connection"));

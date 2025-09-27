@@ -1,19 +1,19 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ServiceContracts;
-using Services;
 
-namespace CURDDEMO.Controllers
+namespace CRUDDEMO.Controllers
 {
-    //[Route("[controller]")]
-    [Route("Countries")]
+    [Route("[controller]")]
     public class CountriesController : Controller
     {
-        private readonly ICountriesService _countriesService;
+        private readonly ICountriesGetterService _countriesGetterService;
+        private readonly ICountriesUploaderService _countriesUploaderService;
 
-        public CountriesController(ICountriesService countriesService)
+        public CountriesController(ICountriesGetterService countriesService)
         {
-            _countriesService = countriesService;
+            _countriesGetterService = countriesService;
         }
+
 
         [Route("UploadFromExcel")]
         public IActionResult UploadFromExcel()
@@ -21,23 +21,26 @@ namespace CURDDEMO.Controllers
             return View();
         }
 
+
         [HttpPost]
         [Route("UploadFromExcel")]
         public async Task<IActionResult> UploadFromExcel(IFormFile excelFile)
         {
-            if (excelFile == null || excelFile.Length==0)
+            if (excelFile == null || excelFile.Length == 0)
             {
-                ViewBag.ErrorMessage = "Please select an excel file";
-                return View();
-            }
-            if (!Path.GetExtension(excelFile.FileName).Equals(".xlsx",StringComparison.OrdinalIgnoreCase))
-            {
-                ViewBag.ErrorMessage = "Unsupported file.Please select an excel file";
+                ViewBag.ErrorMessage = "Please select an xlsx file";
                 return View();
             }
 
-            int CountriesCount= await _countriesService.UplodeCountriesFromExcelFile(excelFile);
-            ViewBag.Message = $"{CountriesCount} countries uploded";
+            if (!Path.GetExtension(excelFile.FileName).Equals(".xlsx", StringComparison.OrdinalIgnoreCase))
+            {
+                ViewBag.ErrorMessage = "Unsupported file. 'xlsx' file is expected";
+                return View();
+            }
+
+            int countriesCountInserted = await _countriesUploaderService.UplodeCountriesFromExcelFile(excelFile);
+
+            ViewBag.Message = $"{countriesCountInserted} Countries Uploaded";
             return View();
         }
     }
