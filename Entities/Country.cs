@@ -1,11 +1,17 @@
-﻿namespace Entities
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Entities
 {
     /// <summary>
     /// Domain Model for Country
     /// </summary>
     public class Country
     {
+        [Key]
         public Guid CountryID { get; set; }
         public string? CountryName { get; set; }
+
+        public virtual ICollection<Person>? Persons { get; set; } // Navigation property to Person entity
+        /// we use ICollection<Person> to establish a one-to-many relationship
     }
 }
